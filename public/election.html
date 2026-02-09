@@ -105,30 +105,27 @@
         }
 
         async function loadCandidates() {
-            const res = await fetch('/api/candidates');
-            const data = await res.json();
-            const container = document.getElementById('candidates-list');
-            
-            data.forEach(c => {
-                container.innerHTML += `
-                    <div class="bg-white border-2 border-green-100 hover:border-green-500 rounded-lg p-4 cursor-pointer transition-all shadow-sm hover:shadow-lg flex flex-col items-center text-center"
-                        onclick="confirmVote(${c.id}, '${c.party_name}')">
-                        <img src="${c.image_url}" class="w-24 h-24 rounded-full object-cover mb-3 border-2 border-green-600">
-                        <div class="text-2xl font-bold text-green-700">เบอร์ ${c.id}</div>
-                        <h3 class="font-bold text-lg">${c.party_name}</h3>
-                        <p class="text-sm text-gray-500">${c.name}</p>
-                        <button class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-full w-full font-bold">
-                            X กากบาท
-                        </button>
-                    </div>
-                `;
-            });
-        }
+    const res = await fetch('/api/candidates');
+    const data = await res.json();
+    const container = document.getElementById('candidates-list');
 
-        function confirmVote(id, partyName) {
+    data.forEach(c => {
+        container.innerHTML += `
+            <div class="bg-white border-2 border-green-100 hover:border-green-500 rounded-lg p-4 cursor-pointer transition-all shadow-sm hover:shadow-lg flex flex-col items-center text-center"
+                onclick="confirmVote(${c.id}, '${c.name}')"> <img src="${c.image_url}" class="w-24 h-24 rounded-full object-cover mb-3 border-2 border-green-600">
+                <div class="text-2xl font-bold text-green-700">เบอร์ ${c.id}</div>
+                <h3 class="font-bold text-lg">${c.name}</h3> <button class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-full w-full font-bold">
+                    X กากบาท
+                </button>
+            </div>
+        `;
+    });
+}
+
+        function confirmVote(id, name) { // เปลี่ยนพารามิเตอร์เป็น name
             Swal.fire({
                 title: 'ยืนยันการเลือกตั้ง?',
-                text: `คุณต้องการเลือก "${partyName}" (เบอร์ ${id}) ใช่หรือไม่?`,
+                text: `คุณต้องการเลือก "${name}" (เบอร์ ${id}) ใช่หรือไม่?`, // แสดงชื่อผู้สมัคร
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#166534', // Green-700
@@ -169,4 +166,5 @@
         initElection();
     </script>
 </body>
+
 </html>
