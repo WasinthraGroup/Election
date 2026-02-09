@@ -71,6 +71,26 @@ app.post('/api/vote', async (req, res) => {
     }
 });
 
+app.post('/api/roblox-vote', async (req, res) => {
+    const { candidateId, username } = req.body;
+    try {
+        const checkVoter = await pool.query('SELECT id FROM voters WHERE username = $1', [username]);
+        if (checkVoter.rows.length > 0) {
+            return res.status(400).json({ success: false, message: 'Already Voted' });
+        }
+
+        await pool.query('BEGIN');
+        await pool.query('INSERT INTO voters (username) VALUES ($1)', [username]);
+        await pool.query('UPDATE candidates SET vote_count = vote_count + 1 WHERE id = $1', [candidateId]);
+        await pool.query('COMMIT');
+
+        res.json({ success: true });
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ success: false });
+    }
+});
+
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/home', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/policy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'policy.html')));
@@ -80,6 +100,7 @@ app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 
 });
+
 
 
 
