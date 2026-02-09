@@ -10,8 +10,8 @@ const port = process.env.PORT || 3000;
 
 // --- ตั้งค่าเวลาเลือกตั้ง (แก้ไขที่นี่) ---
 // ตัวอย่าง: เปิดเลือกตั้ง 14 กุมภาพันธ์ 2026 เวลา 08:00
-const ELECTION_START = new Date('2026-02-14T08:00:00').getTime(); 
-const ELECTION_END = new Date('2026-02-14T17:00:00').getTime();
+const ELECTION_START = new Date('2026-02-09T08:00:00').getTime(); 
+const ELECTION_END = new Date('2026-02-10T17:00:00').getTime();
 
 // เชื่อมต่อ Database
 const pool = new Pool({
@@ -74,3 +74,4 @@ app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 
 });
+
