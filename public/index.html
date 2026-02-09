@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเลือกตั้งออนไลน์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Sarabun', sans-serif; } </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <nav class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="font-bold text-xl flex items-center">
+                <span class="bg-white text-green-700 px-2 py-1 rounded mr-2">ECT</span> ระบบเลือกตั้ง
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="/home" class="hover:text-green-200 font-semibold underline">หน้าหลัก</a>
+                <a href="/policy" class="hover:text-green-200 font-semibold">นโยบายพรรค</a>
+                <a href="/election" class="hover:text-green-200 font-semibold">เข้าคูหาเลือกตั้ง</a>
+            </div>
+            <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-green-800 p-4">
+            <a href="/home" class="block py-2 hover:bg-green-700 text-white font-semibold">หน้าหลัก</a>
+            <a href="/policy" class="block py-2 hover:bg-green-700 text-white font-semibold">นโยบายพรรค</a>
+            <a href="/election" class="block py-2 hover:bg-green-700 text-white font-semibold">เข้าคูหาเลือกตั้ง</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-10 text-center">
+        <div class="bg-white p-8 rounded-lg shadow-md border-t-4 border-green-600 max-w-2xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-bold text-green-800 mb-4">ยินดีต้อนรับสู่ระบบเลือกตั้ง 2569</h1>
+            <p class="text-lg text-gray-600 mb-6">โปร่งใส ตรวจสอบได้ ยุติธรรม</p>
+            <div class="space-y-4 text-left bg-green-50 p-4 rounded-md text-sm md:text-base border border-green-200">
+                <p><strong>📅 วันที่เลือกตั้ง:</strong> 14 กุมภาพันธ์ 2569</p>
+                <p><strong>⏰ เวลา:</strong> 08:00 - 17:00 น.</p>
+                <p><strong>📍 สถานที่:</strong> ออนไลน์ (ผ่านเว็บไซต์นี้)</p>
+            </div>
+            <a href="/policy" class="mt-8 inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                ดูนโยบายพรรคการเมือง
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
