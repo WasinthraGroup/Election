@@ -47,20 +47,39 @@ app.get('/api/candidates', async (req, res) => {
 
 // API: ลงคะแนน
 app.post('/api/vote', async (req, res) => {
+    const { candidateId, username } = req.body; // รับ username มาด้วย
     const now = new Date().getTime();
-    
-    // ตรวจสอบเวลา Server Side (กันคนโกงเวลายิง API)
+
+    // 1. เช็คเวลา
     if (now < ELECTION_START || now > ELECTION_END) {
         return res.status(403).json({ success: false, message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง' });
     }
 
-    const { candidateId } = req.body;
+    // 2. เช็คว่ากรอกชื่อมาไหม
+    if (!username || username.trim() === "") {
+        return res.status(400).json({ success: false, message: 'กรุณากรอกชื่อผู้ใช้งาน' });
+    }
+
     try {
+        // 3. เช็คว่าชื่อนี้โหวตไปหรือยัง (ใช้ UNIQUE constraint ใน DB ช่วยเช็ค)
+        const checkVoter = await pool.query('SELECT id FROM voters WHERE username = $1', [username]);
+        if (checkVoter.rows.length > 0) {
+            return res.status(400).json({ success: false, message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว' });
+        }
+
+        // เริ่มต้น Transaction (เพื่อความแม่นยำ)
+        await pool.query('BEGIN');
+        // เพิ่มชื่อลงในรายชื่อผู้โหวต
+        await pool.query('INSERT INTO voters (username) VALUES ($1)', [username]);
+        // อัปเดตคะแนน
         await pool.query('UPDATE candidates SET vote_count = vote_count + 1 WHERE id = $1', [candidateId]);
+        await pool.query('COMMIT');
+
         res.json({ success: true, message: 'ลงคะแนนสำเร็จ' });
     } catch (err) {
+        await pool.query('ROLLBACK');
         console.error(err);
-        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาด' });
+        res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล' });
     }
 });
 
@@ -74,4 +93,5 @@ app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 
 });
+
 
