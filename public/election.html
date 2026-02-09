@@ -124,45 +124,77 @@
     });
 }
 
-        function confirmVote(id, name) { // เปลี่ยนพารามิเตอร์เป็น name
+
+        function confirmVote(id, name) {
+    // ด่านที่ 1: ถามว่าเลือกคนนี้จริงไหม
+    Swal.fire({
+        title: 'ยืนยันการเลือกตั้ง?',
+        text: `คุณต้องการเลือก "${name}" (เบอร์ ${id}) ใช่หรือไม่?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#166534',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ใช่, ฉันเลือกคนนี้',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // ด่านที่ 2: ให้กรอกชื่อ Roblox
             Swal.fire({
-                title: 'ยืนยันการเลือกตั้ง?',
-                text: `คุณต้องการเลือก "${name}" (เบอร์ ${id}) ใช่หรือไม่?`, // แสดงชื่อผู้สมัคร
-                icon: 'question',
+                title: 'ยืนยันตัวตน',
+                input: 'text',
+                inputLabel: 'กรุณากรอกชื่อผู้ใช้งานเพื่อบันทึกสิทธิ',
+                inputPlaceholder: 'ชื่อผู้ใช้งาน Roblox', // Placement text ตามสั่ง
+                inputAttributes: {
+                    autocapitalize: 'off'
+                },
                 showCancelButton: true,
-                confirmButtonColor: '#166534', // Green-700
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    submitVote(id);
+                confirmButtonText: 'ยืนยันการโหวต',
+                confirmButtonColor: '#166534',
+                cancelButtonText: 'ยกเลิก',
+                // ตรวจสอบว่าห้ามปล่อยว่าง
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'จำเป็นต้องใส่ชื่อผู้ใช้งาน!';
+                    }
+                }
+            }).then((inputResult) => {
+                if (inputResult.isConfirmed) {
+                    const username = inputResult.value;
+                    submitVote(id, username); // ส่งทั้ง ID และ Username ไปที่ Backend
                 }
             });
         }
+    });
+}
 
-        async function submitVote(id) {
-            const res = await fetch('/api/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ candidateId: id })
-            });
-            const result = await res.json();
+// ปรับปรุงฟังก์ชันส่งข้อมูล
+async function submitVote(id, username) {
+    const res = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidateId: id, username: username })
+    });
+    const result = await res.json();
 
-            if (result.success) {
-                Swal.fire({
-                    title: 'เรียบร้อย!',
-                    text: 'บันทึกคะแนนของคุณแล้ว',
-                    icon: 'success',
-                    confirmButtonColor: '#166534'
-                }).then(() => {
-                    // ป้องกันการกดซ้ำแบบง่ายๆ โดยการรีโหลดหรือซ่อน
-                     window.location.href = '/home';
-                });
-            } else {
-                Swal.fire('เกิดข้อผิดพลาด', result.message, 'error');
-            }
-        }
+    if (result.success) {
+        Swal.fire({
+            title: 'เรียบร้อย!',
+            text: 'บันทึกคะแนนของคุณแล้ว',
+            icon: 'success',
+            confirmButtonColor: '#166534'
+        }).then(() => {
+            window.location.href = '/home';
+        });
+    } else {
+        // หากชื่อซ้ำ หรือมี Error จะแสดงแจ้งเตือนสีแดงตรงนี้
+        Swal.fire({
+            title: 'ไม่สำเร็จ',
+            text: result.message,
+            icon: 'error',
+            confirmButtonColor: '#d33'
+        });
+    }
+}
 
         // เริ่มทำงาน
         initElection();
@@ -170,4 +202,5 @@
 </body>
 
 </html>
+
 
