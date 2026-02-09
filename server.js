@@ -37,7 +37,7 @@ app.get('/api/status', (req, res) => {
 // API: ดึงข้อมูลผู้สมัคร
 app.get('/api/candidates', async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, name, party_name, policy_text, image_url FROM candidates ORDER BY id ASC');
+        const result = await pool.query('SELECT id, name, policy_text, image_url FROM candidates ORDER BY id ASC');
         res.json(result.rows);
     } catch (err) {
         console.error(err);
@@ -72,4 +72,5 @@ app.get('/election', (req, res) => res.sendFile(path.join(__dirname, 'public', '
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+
 });
