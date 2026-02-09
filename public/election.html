@@ -62,26 +62,22 @@
     </div>
 
     <script>
-        // Check Status & Countdown Logic
         async function initElection() {
             const res = await fetch('/api/status');
             const status = await res.json();
-            const now = status.now; // ใช้เวลาจาก Server เพื่อความชัวร์
+            const now = status.now; 
 
             const countdownEl = document.getElementById('countdown-section');
             const votingEl = document.getElementById('voting-section');
             const closedEl = document.getElementById('closed-section');
 
             if (now < status.start) {
-                // ยังไม่ถึงเวลา -> เริ่มนับถอยหลัง
                 startCountdown(status.start);
             } else if (now >= status.start && now <= status.end) {
-                // ถึงเวลาแล้ว -> ซ่อนนับถอยหลัง แสดงบัตรเลือกตั้ง
                 countdownEl.style.display = 'none';
                 votingEl.classList.remove('hidden');
                 loadCandidates();
             } else {
-                // หมดเวลา
                 countdownEl.style.display = 'none';
                 closedEl.classList.remove('hidden');
             }
@@ -93,7 +89,7 @@
                 const distance = targetTime - now;
 
                 if (distance < 0) {
-                    location.reload(); // รีโหลดหน้าเพื่อเปิดโหวต
+                    location.reload(); 
                     return;
                 }
 
@@ -126,7 +122,6 @@
 
 
         function confirmVote(id, name) {
-    // ด่านที่ 1: ถามว่าเลือกคนนี้จริงไหม
     Swal.fire({
         title: 'ยืนยันการเลือกตั้ง?',
         text: `คุณต้องการเลือก "${name}" (เบอร์ ${id}) ใช่หรือไม่?`,
@@ -138,12 +133,11 @@
         cancelButtonText: 'ยกเลิก'
     }).then((result) => {
         if (result.isConfirmed) {
-            // ด่านที่ 2: ให้กรอกชื่อ Roblox
             Swal.fire({
                 title: 'ยืนยันตัวตน',
                 input: 'text',
                 inputLabel: 'กรุณากรอกชื่อผู้ใช้งานเพื่อบันทึกสิทธิ',
-                inputPlaceholder: 'ชื่อผู้ใช้งาน Roblox', // Placement text ตามสั่ง
+                inputPlaceholder: 'ชื่อผู้ใช้งาน Roblox',
                 inputAttributes: {
                     autocapitalize: 'off'
                 },
@@ -151,7 +145,6 @@
                 confirmButtonText: 'ยืนยันการโหวต',
                 confirmButtonColor: '#166534',
                 cancelButtonText: 'ยกเลิก',
-                // ตรวจสอบว่าห้ามปล่อยว่าง
                 inputValidator: (value) => {
                     if (!value) {
                         return 'จำเป็นต้องใส่ชื่อผู้ใช้งาน!';
@@ -160,14 +153,13 @@
             }).then((inputResult) => {
                 if (inputResult.isConfirmed) {
                     const username = inputResult.value;
-                    submitVote(id, username); // ส่งทั้ง ID และ Username ไปที่ Backend
+                    submitVote(id, username); 
                 }
             });
         }
     });
 }
 
-// ปรับปรุงฟังก์ชันส่งข้อมูล
 async function submitVote(id, username) {
     const res = await fetch('/api/vote', {
         method: 'POST',
@@ -186,7 +178,6 @@ async function submitVote(id, username) {
             window.location.href = '/home';
         });
     } else {
-        // หากชื่อซ้ำ หรือมี Error จะแสดงแจ้งเตือนสีแดงตรงนี้
         Swal.fire({
             title: 'ไม่สำเร็จ',
             text: result.message,
@@ -196,12 +187,12 @@ async function submitVote(id, username) {
     }
 }
 
-        // เริ่มทำงาน
         initElection();
     </script>
 </body>
 
 </html>
+
 
 
 
