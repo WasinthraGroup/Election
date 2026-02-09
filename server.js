@@ -8,8 +8,8 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const ELECTION_START = new Date('2026-03-01T08:00:00').getTime(); 
-const ELECTION_END = new Date('2026-03-01T17:00:00').getTime();
+const ELECTION_START = new Date(process.env.StartDate).getTime(); 
+const ELECTION_END = new Date(process.env.EndDate).getTime();
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -80,6 +80,7 @@ app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 
 });
+
 
 
 
