@@ -11,178 +11,118 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-    <nav class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="font-bold text-xl flex items-center">
-                <img src="https://www.ect.go.th/web-upload/migrate/nakhonsithammarat/images/article/news101/n20170601_101.png" alt="Logo" class="h-8 w-8 object-contain mr-2">
-                <span class="bg-white text-green-700 px-2 py-1 rounded mr-2 text-sm">ECT</span> 
-                ระบบเลือกตั้ง
-            </div>
-            <div class="hidden md:flex space-x-6">
-                <a href="/home" class="hover:text-green-200 font-semibold">หน้าหลัก</a>
-                <a href="/policy" class="hover:text-green-200 font-semibold">นโยบายผู้สมัคร</a>
-                <a href="/election" class="hover:text-green-200 font-semibold underline">เข้าคูหาเลือกตั้ง</a>
-            </div>
-            <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-            </button>
-        </div>
-        <div id="mobile-menu" class="hidden md:hidden bg-green-800 p-4">
-            <a href="/home" class="block py-2 hover:bg-green-700 text-white font-semibold">หน้าหลัก</a>
-            <a href="/policy" class="block py-2 hover:bg-green-700 text-white font-semibold">นโยบายผู้สมัคร</a>
-            <a href="/election" class="block py-2 hover:bg-green-700 text-white font-semibold">เข้าคูหาเลือกตั้ง</a>
-        </div>
-    </nav>
+<div class="container mx-auto px-4 py-8 text-center">
 
-    <div class="container mx-auto px-4 py-8 text-center">
-        
-        <div id="countdown-section" class="mb-10 p-8 bg-green-900 text-white rounded-lg shadow-xl mx-auto max-w-3xl">
-            <h2 class="text-2xl font-bold mb-4">นับถอยหลังสู่การเปิดหีบเลือกตั้ง</h2>
-            <div class="flex justify-center gap-4 text-center">
-                <div><span id="d" class="text-4xl md:text-6xl font-mono font-bold">00</span><br>วัน</div>
-                <div><span id="h" class="text-4xl md:text-6xl font-mono font-bold">00</span><br>ชั่วโมง</div>
-                <div><span id="m" class="text-4xl md:text-6xl font-mono font-bold">00</span><br>นาที</div>
-                <div><span id="s" class="text-4xl md:text-6xl font-mono font-bold text-green-400">00</span><br>วินาที</div>
-            </div>
+    <div id="countdown-section" class="mb-10 p-8 bg-green-900 text-white rounded-lg shadow-xl mx-auto max-w-3xl">
+        <h2 class="text-2xl font-bold mb-4">นับถอยหลังสู่การเปิดหีบเลือกตั้ง</h2>
+        <div class="flex justify-center gap-4 text-center">
+            <div><span id="d" class="text-4xl font-mono font-bold">00</span><br>วัน</div>
+            <div><span id="h" class="text-4xl font-mono font-bold">00</span><br>ชั่วโมง</div>
+            <div><span id="m" class="text-4xl font-mono font-bold">00</span><br>นาที</div>
+            <div><span id="s" class="text-4xl font-mono font-bold text-green-400">00</span><br>วินาที</div>
         </div>
-
-        <div id="voting-section" class="hidden">
-            <h2 class="text-3xl font-bold text-green-800 mb-6">บัตรเลือกตั้งอิเล็กทรอนิกส์</h2>
-            <p class="mb-8 text-red-600 font-bold animate-pulse">** กรุณาตรวจสอบให้แน่ใจ ท่านสามารถลงคะแนนได้เพียงครั้งเดียว **</p>
-            
-            <div id="candidates-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
-                </div>
-        </div>
-
-        <div id="closed-section" class="hidden p-10 bg-gray-200 rounded-lg">
-            <h2 class="text-2xl font-bold text-gray-600">ปิดหีบเลือกตั้งแล้ว</h2>
-            <p>ขอบคุณที่มาใช้สิทธิ</p>
-        </div>
-
     </div>
 
-    <script>
-        async function initElection() {
-        const res = await fetch('/api/status');
-        const status = await res.json();
-    
-        const countdownEl = document.getElementById('countdown-section');
-        const votingEl = document.getElementById('voting-section');
-        const closedEl = document.getElementById('closed-section');
-    
-        // แปลง HH:MM:SS เป็นวินาทีรวม
-        function timeToSeconds(timeStr) {
-            const [h, m, s] = timeStr.split(':').map(Number);
-            return (h * 3600) + (m * 60) + s;
-        }
-    
-        const nowSeconds = timeToSeconds(status.now);
-        const startSeconds = timeToSeconds(status.start);
-        const endSeconds = timeToSeconds(status.end);
-    
-        if (nowSeconds < startSeconds) {
-            startCountdown(startSeconds);
-        } 
-        else if (nowSeconds >= startSeconds && nowSeconds <= endSeconds) {
-            countdownEl.style.display = 'none';
-            votingEl.classList.remove('hidden');
-            loadCandidates();
-        } 
-        else {
-            countdownEl.style.display = 'none';
-            closedEl.classList.remove('hidden');
-        }
-    }
-    
-    
-    function startCountdown(targetSeconds) {
-    
-        function getNowThaiSeconds() {
-            const now = new Date();
-            const thaiTime = now.toLocaleTimeString('th-TH', {
-                timeZone: 'Asia/Bangkok',
-                hour12: false
-            });
-            const [h, m, s] = thaiTime.split(':').map(Number);
-            return (h * 3600) + (m * 60) + s;
-        }
-    
-        const update = () => {
-            const nowSeconds = getNowThaiSeconds();
-            let distance = targetSeconds - nowSeconds;
-    
-            if (distance < 0) {
-                location.reload();
-                return;
-            }
-    
-            const d = Math.floor(distance / 86400);
-            const h = Math.floor((distance % 86400) / 3600);
-            const m = Math.floor((distance % 3600) / 60);
-            const s = Math.floor(distance % 60);
-    
-            document.getElementById('d').innerText = d.toString().padStart(2, '0');
-            document.getElementById('h').innerText = h.toString().padStart(2, '0');
-            document.getElementById('m').innerText = m.toString().padStart(2, '0');
-            document.getElementById('s').innerText = s.toString().padStart(2, '0');
-        };
-    
-        setInterval(update, 1000);
-        update();
+    <div id="voting-section" class="hidden">
+        <h2 class="text-3xl font-bold text-green-800 mb-6">บัตรเลือกตั้งอิเล็กทรอนิกส์</h2>
+        <div id="candidates-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left"></div>
+    </div>
+
+    <div id="closed-section" class="hidden p-10 bg-gray-200 rounded-lg">
+        <h2 class="text-2xl font-bold text-gray-600">ปิดหีบเลือกตั้งแล้ว</h2>
+        <p>ขอบคุณที่มาใช้สิทธิ</p>
+    </div>
+
+</div>
+
+<script>
+async function initElection() {
+    const res = await fetch('/api/status');
+    const status = await res.json();
+
+    const countdownEl = document.getElementById('countdown-section');
+    const votingEl = document.getElementById('voting-section');
+    const closedEl = document.getElementById('closed-section');
+
+    const now = Date.now();
+
+    if (status.isOpen) {
+        countdownEl.style.display = 'none';
+        votingEl.classList.remove('hidden');
+        loadCandidates();
+        return;
     }
 
-    async function loadCandidates() {
+    if (now < status.startTs) {
+        startCountdown(status.startTs);
+    } else {
+        countdownEl.style.display = 'none';
+        closedEl.classList.remove('hidden');
+    }
+}
+
+function startCountdown(targetTs) {
+    const update = () => {
+        const now = Date.now();
+        const distance = targetTs - now;
+
+        if (distance <= 0) {
+            location.reload();
+            return;
+        }
+
+        const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const h = Math.floor((distance / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((distance / (1000 * 60)) % 60);
+        const s = Math.floor((distance / 1000) % 60);
+
+        document.getElementById('d').innerText = d.toString().padStart(2, '0');
+        document.getElementById('h').innerText = h.toString().padStart(2, '0');
+        document.getElementById('m').innerText = m.toString().padStart(2, '0');
+        document.getElementById('s').innerText = s.toString().padStart(2, '0');
+    };
+
+    setInterval(update, 1000);
+    update();
+}
+
+async function loadCandidates() {
     const res = await fetch('/api/candidates');
     const data = await res.json();
     const container = document.getElementById('candidates-list');
 
     data.forEach(c => {
         container.innerHTML += `
-            <div class="bg-white border-2 border-green-100 hover:border-green-500 rounded-lg p-4 cursor-pointer transition-all shadow-sm hover:shadow-lg flex flex-col items-center text-center"
-                onclick="confirmVote(${c.id}, '${c.name}')"> <img src="${c.image_url}" class="w-24 h-24 rounded-full object-cover mb-3 border-2 border-green-600">
+            <div class="bg-white border rounded-lg p-4 text-center">
+                <img src="${c.image_url}" class="w-24 h-24 rounded-full mx-auto mb-3">
                 <div class="text-2xl font-bold text-green-700">เบอร์ ${c.id}</div>
-                <h3 class="font-bold text-lg">${c.name}</h3> <button class="mt-4 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-full w-full font-bold">
-                    X กากบาท
+                <h3 class="font-bold text-lg">${c.name}</h3>
+                <button onclick="confirmVote(${c.id}, '${c.name}')" class="mt-4 bg-green-600 text-white py-2 px-6 rounded-full w-full font-bold">
+                    กากบาท
                 </button>
             </div>
         `;
     });
 }
 
-
-        function confirmVote(id, name) {
+function confirmVote(id, name) {
     Swal.fire({
         title: 'ยืนยันการเลือกตั้ง?',
-        text: `คุณต้องการเลือก "${name}" (เบอร์ ${id}) ใช่หรือไม่?`,
+        text: `คุณต้องการเลือก "${name}" ใช่หรือไม่?`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#166534',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'ใช่, ฉันเลือกคนนี้',
+        confirmButtonText: 'ใช่',
         cancelButtonText: 'ยกเลิก'
-    }).then((result) => {
+    }).then(result => {
         if (result.isConfirmed) {
             Swal.fire({
-                title: 'ยืนยันตัวตน',
+                title: 'กรอกชื่อผู้ใช้งาน',
                 input: 'text',
-                inputLabel: 'กรุณากรอกชื่อผู้ใช้งานเพื่อบันทึกสิทธิ',
-                inputPlaceholder: 'ชื่อผู้ใช้งาน Roblox',
-                inputAttributes: {
-                    autocapitalize: 'off'
-                },
                 showCancelButton: true,
-                confirmButtonText: 'ยืนยันการโหวต',
-                confirmButtonColor: '#166534',
-                cancelButtonText: 'ยกเลิก',
-                inputValidator: (value) => {
-                    if (!value) {
-                        return 'จำเป็นต้องใส่ชื่อผู้ใช้งาน!';
-                    }
-                }
-            }).then((inputResult) => {
-                if (inputResult.isConfirmed) {
-                    const username = inputResult.value;
-                    submitVote(id, username); 
+                confirmButtonText: 'ยืนยัน'
+            }).then(inputResult => {
+                if (inputResult.isConfirmed && inputResult.value) {
+                    submitVote(id, inputResult.value);
                 }
             });
         }
@@ -193,39 +133,21 @@ async function submitVote(id, username) {
     const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidateId: id, username: username })
+        body: JSON.stringify({ candidateId: id, username })
     });
+
     const result = await res.json();
 
     if (result.success) {
-        Swal.fire({
-            title: 'เรียบร้อย!',
-            text: 'บันทึกคะแนนของคุณแล้ว',
-            icon: 'success',
-            confirmButtonColor: '#166534'
-        }).then(() => {
-            window.location.href = '/home';
-        });
+        Swal.fire('สำเร็จ', 'บันทึกคะแนนแล้ว', 'success')
+            .then(() => window.location.href = '/home');
     } else {
-        Swal.fire({
-            title: 'ไม่สำเร็จ',
-            text: result.message,
-            icon: 'error',
-            confirmButtonColor: '#d33'
-        });
+        Swal.fire('ไม่สำเร็จ', result.message, 'error');
     }
 }
 
-        initElection();
-    </script>
+initElection();
+</script>
+
 </body>
-
 </html>
-
-
-
-
-
-
-
-
