@@ -9,6 +9,14 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
+function toThaiDate(dateInput) {
+    return new Date(
+        new Date(dateInput).toLocaleString('en-US', {
+            timeZone: 'Asia/Bangkok'
+        })
+    );
+}
+
 function getThaiTimeString(date = new Date()) {
     return date.toLocaleTimeString('th-TH', {
         timeZone: 'Asia/Bangkok',
@@ -19,8 +27,8 @@ function getThaiTimeString(date = new Date()) {
     });
 }
 
-const ELECTION_START = new Date(process.env.StartDate);
-const ELECTION_END = new Date(process.env.EndDate);
+const ELECTION_START = toThaiDate(process.env.StartDate);
+const ELECTION_END = toThaiDate(process.env.EndDate);
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -32,7 +40,8 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 app.get('/api/status', (req, res) => {
-    const now = new Date();
+
+    const now = toThaiDate(new Date());
 
     res.json({
         now: getThaiTimeString(now),
@@ -55,8 +64,9 @@ app.get('/api/candidates', async (req, res) => {
 });
 
 app.post('/api/vote', async (req, res) => {
+
     const { candidateId, username } = req.body;
-    const now = new Date();
+    const now = toThaiDate(new Date());
 
     if (now < ELECTION_START || now > ELECTION_END) {
         return res.status(403).json({
@@ -73,6 +83,7 @@ app.post('/api/vote', async (req, res) => {
     }
 
     try {
+
         const checkVoter = await pool.query(
             'SELECT id FROM voters WHERE username = $1',
             [username]
@@ -105,8 +116,10 @@ app.post('/api/vote', async (req, res) => {
         });
 
     } catch (err) {
+
         await pool.query('ROLLBACK');
         console.error(err);
+
         res.status(500).json({
             success: false,
             message: 'เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล'
@@ -115,15 +128,17 @@ app.post('/api/vote', async (req, res) => {
 });
 
 app.post('/api/roblox-vote', async (req, res) => {
+
     const { candidateId, username } = req.body;
-    const now = new Date();
+    const now = toThaiDate(new Date());
+    const nowTimeString = getThaiTimeString(now);
 
     try {
 
         if (now < ELECTION_START || now > ELECTION_END) {
             return res.status(403).json({
                 success: false,
-                message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
+                message: nowTimeString
             });
         }
 
@@ -135,7 +150,7 @@ app.post('/api/roblox-vote', async (req, res) => {
         if (checkVoter.rows.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: 'Already Voted'
+                message: nowTimeString
             });
         }
 
@@ -153,12 +168,20 @@ app.post('/api/roblox-vote', async (req, res) => {
 
         await pool.query('COMMIT');
 
-        res.json({ success: true });
+        res.json({
+            success: true,
+            message: nowTimeString
+        });
 
     } catch (err) {
+
         await pool.query('ROLLBACK');
         console.error(err);
-        res.status(500).json({ success: false });
+
+        res.status(500).json({
+            success: false,
+            message: nowTimeString
+        });
     }
 });
 
