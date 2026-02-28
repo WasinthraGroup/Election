@@ -65,15 +65,19 @@
         async function initElection() {
             const res = await fetch('/api/status');
             const status = await res.json();
-            const now = status.now; 
-
+            
+            const now = new Date().getTime(); 
+        
             const countdownEl = document.getElementById('countdown-section');
             const votingEl = document.getElementById('voting-section');
             const closedEl = document.getElementById('closed-section');
-
-            if (now < status.start) {
-                startCountdown(status.start);
-            } else if (now >= status.start && now <= status.end) {
+        
+            const startTime = new Date(status.start).getTime();
+            const endTime = new Date(status.end).getTime();
+        
+            if (now < startTime) {
+                startCountdown(startTime);
+            } else if (now >= startTime && now <= endTime) {
                 countdownEl.style.display = 'none';
                 votingEl.classList.remove('hidden');
                 loadCandidates();
@@ -82,25 +86,32 @@
                 closedEl.classList.remove('hidden');
             }
         }
-
         function startCountdown(targetTime) {
-            const update = () => {
-                const now = new Date().getTime();
-                const distance = targetTime - now;
-
-                if (distance < 0) {
-                    location.reload(); 
-                    return;
-                }
-
-                document.getElementById('d').innerText = Math.floor(distance / (1000 * 60 * 60 * 24));
-                document.getElementById('h').innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                document.getElementById('m').innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                document.getElementById('s').innerText = Math.floor((distance % (1000 * 60)) / 1000);
-            };
-            setInterval(update, 1000);
-            update();
-        }
+        const target = typeof targetTime === 'string' ? new Date(targetTime).getTime() : targetTime;
+    
+        const update = () => {
+            const now = new Date().getTime();
+            const distance = target - now;
+    
+            if (distance < 0) {
+                location.reload(); 
+                return;
+            }
+    
+            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((distance % (1000 * 60)) / 1000);
+    
+            document.getElementById('d').innerText = d.toString().padStart(2, '0');
+            document.getElementById('h').innerText = h.toString().padStart(2, '0');
+            document.getElementById('m').innerText = m.toString().padStart(2, '0');
+            document.getElementById('s').innerText = s.toString().padStart(2, '0');
+        };
+        
+        setInterval(update, 1000);
+        update();
+    }
 
         async function loadCandidates() {
     const res = await fetch('/api/candidates');
@@ -192,6 +203,7 @@ async function submitVote(id, username) {
 </body>
 
 </html>
+
 
 
 
