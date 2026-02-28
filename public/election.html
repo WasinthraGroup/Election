@@ -63,57 +63,75 @@
 
     <script>
         async function initElection() {
-            const res = await fetch('/api/status');
-            const status = await res.json();
-            
-            const now = new Date().getTime(); 
-        
-            const countdownEl = document.getElementById('countdown-section');
-            const votingEl = document.getElementById('voting-section');
-            const closedEl = document.getElementById('closed-section');
-        
-            const startTime = new Date(status.start).getTime();
-            const endTime = new Date(status.end).getTime();
-        
-            if (now < startTime) {
-                startCountdown(startTime);
-            } else if (now >= startTime && now <= endTime) {
-                countdownEl.style.display = 'none';
-                votingEl.classList.remove('hidden');
-                loadCandidates();
-            } else {
-                countdownEl.style.display = 'none';
-                closedEl.classList.remove('hidden');
-            }
+        const res = await fetch('/api/status');
+        const status = await res.json();
+    
+        const countdownEl = document.getElementById('countdown-section');
+        const votingEl = document.getElementById('voting-section');
+        const closedEl = document.getElementById('closed-section');
+    
+        // แปลง HH:MM:SS เป็นวินาทีรวม
+        function timeToSeconds(timeStr) {
+            const [h, m, s] = timeStr.split(':').map(Number);
+            return (h * 3600) + (m * 60) + s;
         }
-        function startCountdown(targetTime) {
-        const target = typeof targetTime === 'string' ? new Date(targetTime).getTime() : targetTime;
+    
+        const nowSeconds = timeToSeconds(status.now);
+        const startSeconds = timeToSeconds(status.start);
+        const endSeconds = timeToSeconds(status.end);
+    
+        if (nowSeconds < startSeconds) {
+            startCountdown(startSeconds);
+        } 
+        else if (nowSeconds >= startSeconds && nowSeconds <= endSeconds) {
+            countdownEl.style.display = 'none';
+            votingEl.classList.remove('hidden');
+            loadCandidates();
+        } 
+        else {
+            countdownEl.style.display = 'none';
+            closedEl.classList.remove('hidden');
+        }
+    }
+    
+    
+    function startCountdown(targetSeconds) {
+    
+        function getNowThaiSeconds() {
+            const now = new Date();
+            const thaiTime = now.toLocaleTimeString('th-TH', {
+                timeZone: 'Asia/Bangkok',
+                hour12: false
+            });
+            const [h, m, s] = thaiTime.split(':').map(Number);
+            return (h * 3600) + (m * 60) + s;
+        }
     
         const update = () => {
-            const now = new Date().getTime();
-            const distance = target - now;
+            const nowSeconds = getNowThaiSeconds();
+            let distance = targetSeconds - nowSeconds;
     
             if (distance < 0) {
-                location.reload(); 
+                location.reload();
                 return;
             }
     
-            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) - 7;
-            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((distance % (1000 * 60)) / 1000);
+            const d = Math.floor(distance / 86400);
+            const h = Math.floor((distance % 86400) / 3600);
+            const m = Math.floor((distance % 3600) / 60);
+            const s = Math.floor(distance % 60);
     
             document.getElementById('d').innerText = d.toString().padStart(2, '0');
             document.getElementById('h').innerText = h.toString().padStart(2, '0');
             document.getElementById('m').innerText = m.toString().padStart(2, '0');
             document.getElementById('s').innerText = s.toString().padStart(2, '0');
         };
-        
+    
         setInterval(update, 1000);
         update();
     }
 
-        async function loadCandidates() {
+    async function loadCandidates() {
     const res = await fetch('/api/candidates');
     const data = await res.json();
     const container = document.getElementById('candidates-list');
@@ -203,6 +221,7 @@ async function submitVote(id, username) {
 </body>
 
 </html>
+
 
 
 
