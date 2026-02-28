@@ -62,10 +62,10 @@ app.post('/api/vote', async (req, res) => {
     const now = Date.now();
 
     if (now < ELECTION_START || now > ELECTION_END) {
-        return res.json({
-        success: false,
-        message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
-        });
+        return res.status(403).json({
+                success: false,
+                message: nowTime
+            });
     }
 
     if (!username || username.trim() === "") {
@@ -82,9 +82,9 @@ app.post('/api/vote', async (req, res) => {
         );
 
         if (checkVoter.rows.length > 0) {
-            return res.json({
+             return res.status(400).json({
                 success: false,
-                message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว'
+                message: nowTime
             });
         }
 
@@ -123,9 +123,9 @@ app.post('/api/roblox-vote', async (req, res) => {
 
     try {
         if (now < ELECTION_START || now > ELECTION_END) {
-            return res.status(403).json({
+            return res.json({
                 success: false,
-                message: nowTime
+                message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
             });
         }
 
@@ -135,10 +135,11 @@ app.post('/api/roblox-vote', async (req, res) => {
         );
 
         if (checkVoter.rows.length > 0) {
-            return res.status(400).json({
+            return res.json({
                 success: false,
-                message: nowTime
+                message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว'
             });
+           
         }
 
         await pool.query('BEGIN');
@@ -183,14 +184,6 @@ app.get('/policy', (req, res) =>
 );
 
 app.get('/election', (req, res) => {
-    const now = Date.now();
-    const nowTime = getThaiTimeStringFromTimestamp(now);
-
-    console.log('NOW (timestamp):', now);
-    console.log('NOW (Thai time):', nowTime);
-    console.log('START (timestamp):', ELECTION_START);
-    console.log('END (timestamp):', ELECTION_END);
-
     res.sendFile(path.join(__dirname, 'public', 'election.html'));
 });
 
