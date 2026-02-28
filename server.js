@@ -62,9 +62,9 @@ app.post('/api/vote', async (req, res) => {
     const now = Date.now();
 
     if (now < ELECTION_START || now > ELECTION_END) {
-        return res.status(403).json({
-            success: false,
-            message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
+        return res.json({
+        success: false,
+        message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
         });
     }
 
@@ -82,7 +82,7 @@ app.post('/api/vote', async (req, res) => {
         );
 
         if (checkVoter.rows.length > 0) {
-            return res.status(400).json({
+            return res.json({
                 success: false,
                 message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว'
             });
@@ -197,5 +197,6 @@ app.get('/election', (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
 
 
