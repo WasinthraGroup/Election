@@ -59,8 +59,14 @@ app.post('/api/vote', async (req, res) => {
         }
 
         await pool.query('BEGIN');
-        await pool.query('INSERT INTO voters (username) VALUES ($1)', [username]);
-        await pool.query('UPDATE candidates SET vote_count = vote_count + 1 WHERE id = $1', [candidateId]);
+        await pool.query(
+            'INSERT INTO voters (username, candidate_id) VALUES ($1, $2)', 
+            [username, candidateId]
+        );
+        await pool.query(
+            'UPDATE candidates SET vote_count = vote_count + 1 WHERE id = $1', 
+            [candidateId]
+        );
         await pool.query('COMMIT');
 
         res.json({ success: true, message: 'ลงคะแนนสำเร็จ' });
@@ -80,11 +86,17 @@ app.post('/api/roblox-vote', async (req, res) => {
         }
 
         await pool.query('BEGIN');
-        await pool.query('INSERT INTO voters (username) VALUES ($1)', [username]);
-        await pool.query('UPDATE candidates SET vote_count = vote_count + 1 WHERE id = $1', [candidateId]);
+        await pool.query(
+            'INSERT INTO voters (username, candidate_id) VALUES ($1, $2)', 
+            [username, candidateId]
+        );
+        await pool.query(
+            'UPDATE candidates SET vote_count = vote_count + 1 WHERE id = $1', 
+            [candidateId]
+        );
         await pool.query('COMMIT');
-
         res.json({ success: true });
+        
     } catch (err) {
         await pool.query('ROLLBACK');
         res.status(500).json({ success: false });
@@ -100,6 +112,7 @@ app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 
 });
+
 
 
 
