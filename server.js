@@ -9,21 +9,21 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-function parseThaiDate(dateStr) {
+function parseThaiToTimestamp(dateStr) {
     const [datePart, timePart] = dateStr.split('T');
     const [year, month, day] = datePart.split('-').map(Number);
     const [hour, minute, second] = timePart.split(':').map(Number);
-    return new Date(Date.UTC(year, month - 1, day, hour - 7, minute, second));
+    return Date.UTC(year, month - 1, day, hour - 7, minute, second);
 }
 
-function getThaiTimeString(date = new Date()) {
+function getThaiTimeStringFromTimestamp(ts) {
     const thaiOffset = 7 * 60 * 60 * 1000;
-    const thaiTime = new Date(date.getTime() + thaiOffset);
+    const thaiTime = new Date(ts + thaiOffset);
     return thaiTime.toISOString().substring(11, 19);
 }
 
-const ELECTION_START = parseThaiDate(process.env.StartDate);
-const ELECTION_END = parseThaiDate(process.env.EndDate);
+const ELECTION_START = parseThaiToTimestamp(process.env.StartDate);
+const ELECTION_END = parseThaiToTimestamp(process.env.EndDate);
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -35,11 +35,11 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 
 app.get('/api/status', (req, res) => {
-    const now = new Date();
+    const now = Date.now();
     res.json({
-        now: getThaiTimeString(now),
-        start: getThaiTimeString(ELECTION_START),
-        end: getThaiTimeString(ELECTION_END),
+        now: getThaiTimeStringFromTimestamp(now),
+        start: getThaiTimeStringFromTimestamp(ELECTION_START),
+        end: getThaiTimeStringFromTimestamp(ELECTION_END),
         isOpen: now >= ELECTION_START && now <= ELECTION_END
     });
 });
@@ -50,14 +50,14 @@ app.get('/api/candidates', async (req, res) => {
             'SELECT id, name, policy_text, image_url FROM candidates ORDER BY id ASC'
         );
         res.json(result.rows);
-    } catch (err) {
+    } catch {
         res.status(500).send('Database Error');
     }
 });
 
 app.post('/api/vote', async (req, res) => {
     const { candidateId, username } = req.body;
-    const now = new Date();
+    const now = Date.now();
 
     if (now < ELECTION_START || now > ELECTION_END) {
         return res.status(403).json({
@@ -105,7 +105,7 @@ app.post('/api/vote', async (req, res) => {
             message: 'ลงคะแนนสำเร็จ'
         });
 
-    } catch (err) {
+    } catch {
         await pool.query('ROLLBACK');
         res.status(500).json({
             success: false,
@@ -116,14 +116,14 @@ app.post('/api/vote', async (req, res) => {
 
 app.post('/api/roblox-vote', async (req, res) => {
     const { candidateId, username } = req.body;
-    const now = new Date();
-    const nowTimeString = getThaiTimeString(now);
+    const now = Date.now();
+    const nowTime = getThaiTimeStringFromTimestamp(now);
 
     try {
         if (now < ELECTION_START || now > ELECTION_END) {
             return res.status(403).json({
                 success: false,
-                message: nowTimeString
+                message: nowTime
             });
         }
 
@@ -135,7 +135,7 @@ app.post('/api/roblox-vote', async (req, res) => {
         if (checkVoter.rows.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: nowTimeString
+                message: nowTime
             });
         }
 
@@ -155,14 +155,14 @@ app.post('/api/roblox-vote', async (req, res) => {
 
         res.json({
             success: true,
-            message: nowTimeString
+            message: nowTime
         });
 
-    } catch (err) {
+    } catch {
         await pool.query('ROLLBACK');
         res.status(500).json({
             success: false,
-            message: nowTimeString
+            message: nowTime
         });
     }
 });
