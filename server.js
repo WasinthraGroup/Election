@@ -40,6 +40,8 @@ app.get('/api/status', (req, res) => {
         now: getThaiTimeStringFromTimestamp(now),
         start: getThaiTimeStringFromTimestamp(ELECTION_START),
         end: getThaiTimeStringFromTimestamp(ELECTION_END),
+        startTs: ELECTION_START,
+        endTs: ELECTION_END,
         isOpen: now >= ELECTION_START && now <= ELECTION_END
     });
 });
@@ -195,4 +197,5 @@ app.get('/election', (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
 
