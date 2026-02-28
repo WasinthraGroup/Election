@@ -172,6 +172,7 @@ app.get('/', (req, res) =>
 );
 
 app.get('/home', (req, res) =>
+  
     res.sendFile(path.join(__dirname, 'public', 'index.html'))
 );
 
@@ -179,10 +180,19 @@ app.get('/policy', (req, res) =>
     res.sendFile(path.join(__dirname, 'public', 'policy.html'))
 );
 
-app.get('/election', (req, res) =>
-    res.sendFile(path.join(__dirname, 'public', 'election.html'))
-);
+app.get('/election', (req, res) => {
+    const now = Date.now();
+    const nowTime = getThaiTimeStringFromTimestamp(now);
+
+    console.log('NOW (timestamp):', now);
+    console.log('NOW (Thai time):', nowTime);
+    console.log('START (timestamp):', ELECTION_START);
+    console.log('END (timestamp):', ELECTION_END);
+
+    res.sendFile(path.join(__dirname, 'public', 'election.html'));
+});
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
+
