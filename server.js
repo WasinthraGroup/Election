@@ -52,7 +52,7 @@ app.get('/api/candidates', async (req, res) => {
             'SELECT id, name, policy_text, image_url FROM candidates ORDER BY id ASC'
         );
         res.json(result.rows);
-    } catch {
+    } catch (err) {
         res.status(500).send('Database Error');
     }
 });
@@ -60,12 +60,13 @@ app.get('/api/candidates', async (req, res) => {
 app.post('/api/vote', async (req, res) => {
     const { candidateId, username } = req.body;
     const now = Date.now();
+    const nowTime = getThaiTimeStringFromTimestamp(now);
 
     if (now < ELECTION_START || now > ELECTION_END) {
         return res.status(403).json({
-                success: false,
-                message: nowTime
-            });
+            success: false,
+            message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
+        });
     }
 
     if (!username || username.trim() === "") {
@@ -76,23 +77,11 @@ app.post('/api/vote', async (req, res) => {
     }
 
     try {
-        const checkVoter = await pool.query(
-            'SELECT id FROM voters WHERE username = $1',
-            [username]
-        );
-
-        if (checkVoter.rows.length > 0) {
-             return res.status(400).json({
-                success: false,
-                message: nowTime
-            });
-        }
-
         await pool.query('BEGIN');
 
         await pool.query(
-            'INSERT INTO voters (username, candidate_id) VALUES ($1, $2)',
-            [username, candidateId]
+            'INSERT INTO voters (username, candidate_id) VALUES (LOWER($1), $2)',
+            [username.trim(), candidateId]
         );
 
         await pool.query(
@@ -107,8 +96,16 @@ app.post('/api/vote', async (req, res) => {
             message: 'ลงคะแนนสำเร็จ'
         });
 
-    } catch {
+    } catch (err) {
         await pool.query('ROLLBACK');
+
+        if (err.code === '23505') { // unique violation
+            return res.status(400).json({
+                success: false,
+                message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว'
+            });
+        }
+
         res.status(500).json({
             success: false,
             message: 'เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล'
@@ -121,32 +118,26 @@ app.post('/api/roblox-vote', async (req, res) => {
     const now = Date.now();
     const nowTime = getThaiTimeStringFromTimestamp(now);
 
+    if (now < ELECTION_START || now > ELECTION_END) {
+        return res.json({
+            success: false,
+            message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
+        });
+    }
+
+    if (!username || username.trim() === "") {
+        return res.json({
+            success: false,
+            message: 'กรุณากรอกชื่อผู้ใช้งาน'
+        });
+    }
+
     try {
-        if (now < ELECTION_START || now > ELECTION_END) {
-            return res.json({
-                success: false,
-                message: 'ไม่อยู่ในช่วงเวลาเลือกตั้ง'
-            });
-        }
-
-        const checkVoter = await pool.query(
-            'SELECT id FROM voters WHERE username = $1',
-            [username]
-        );
-
-        if (checkVoter.rows.length > 0) {
-            return res.json({
-                success: false,
-                message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว'
-            });
-           
-        }
-
         await pool.query('BEGIN');
 
         await pool.query(
-            'INSERT INTO voters (username, candidate_id) VALUES ($1, $2)',
-            [username, candidateId]
+            'INSERT INTO voters (username, candidate_id) VALUES (LOWER($1), $2)',
+            [username.trim(), candidateId]
         );
 
         await pool.query(
@@ -161,8 +152,16 @@ app.post('/api/roblox-vote', async (req, res) => {
             message: nowTime
         });
 
-    } catch {
+    } catch (err) {
         await pool.query('ROLLBACK');
+
+        if (err.code === '23505') {
+            return res.json({
+                success: false,
+                message: 'ชื่อผู้ใช้งานนี้เคยลงคะแนนไปแล้ว'
+            });
+        }
+
         res.status(500).json({
             success: false,
             message: nowTime
@@ -175,7 +174,6 @@ app.get('/', (req, res) =>
 );
 
 app.get('/home', (req, res) =>
-  
     res.sendFile(path.join(__dirname, 'public', 'index.html'))
 );
 
@@ -190,6 +188,3 @@ app.get('/election', (req, res) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
-
-
-
